@@ -1,2 +1,44 @@
 # bashcons3rt
+
 Project to make commonly used bash functions available to asset installation scripts
+
+More Info: [https://github.com/jyennaco/bashcons3rt](https://github.com/jyennaco/bashcons3rt)
+
+### asset.sh
+
+```
+logErr
+log_err
+logInfo
+log_info
+logWarn
+log_warn
+move_asset_media_to_dir
+read_deployment_properties
+run_and_check_status
+set_asset_dir
+set_deployment_home
+timestamp
+timestamp_formatted
+```
+
+### systemd.sh
+
+```
+disable_service
+enable_service
+remove_service
+restart_service
+start_service
+stop_service
+```
+
+### users.sh
+
+```
+add_user_to_group
+create_group
+create_user
+get_cons3rt_created_user
+set_user_password
+```

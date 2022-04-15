@@ -1,4 +1,59 @@
+#!/bin/bash
+#
+# users.sh
+#
+# Common functions that handle user operations like managing groups and projects
+#
+#
 
+function add_user_to_group() {
+    username=""
+    groupname=""
+    username=${1}
+    groupname=${2}
+
+    # Ensure a user was provided
+    if [ -z "${username}" ] ; then
+        logErr "Username not provided to add_user_to_group"
+        return 1
+    fi
+
+    # Ensure a group was provided
+    if [ -z "${groupname}" ] ; then
+        logErr "Group name not provided to add_user_to_group"
+        return 2
+    fi
+    logInfo "Attemping to add user [${username}] to group [${groupname}]"
+
+    # Ensure the username exists
+    if [ $(id -u ${username} >> /dev/null 2>&1; echo $?) -ne 0 ]; then
+        logErr "User does not exist: ${username}"
+        return 3
+    fi
+
+    # Ensure the groupname exists
+    if [ "$(id -g ${groupname} >> /dev/null 2>&1; echo $?)" -eq 0 ] ; then
+        logInfo "Found group: ${groupname}"
+    else
+        if [[ "${groupname}" == "wheel" ]] ; then
+            logInfo "This is wheel group"
+        else
+            logErr "Group does not exist: ${groupname}"
+            return 4
+        fi
+    fi
+
+    # Add the user to the group
+    logInfo "Adding user [${username}] to group: [${groupname}]..."
+    usermod -a -G ${groupname} ${username} >> ${logFile} 2>&1
+    if [ $? -ne 0 ] ; then
+        logErr "There was a problem adding user [${username}] to group: [${groupname}]"
+        return 5
+    else
+        logInfo "Successfully added user [${username}] to group: [${groupname}]"
+    fi
+    return 0
+}
 
 function create_group() {
     groupname=""
@@ -116,52 +171,38 @@ function create_user() {
     return 0
 }
 
-function add_user_to_group() {
-    username=""
-    groupname=""
-    username=${1}
-    groupname=${2}
-
-    # Ensure a user was provided
-    if [ -z "${username}" ] ; then
-        logErr "Username not provided to add_user_to_group"
-        return 1
-    fi
-
-    # Ensure a group was provided
-    if [ -z "${groupname}" ] ; then
-        logErr "Group name not provided to add_user_to_group"
-        return 2
-    fi
-    logInfo "Attemping to add user [${username}] to group [${groupname}]"
-
-    # Ensure the username exists
-    if [ $(id -u ${username} >> /dev/null 2>&1; echo $?) -ne 0 ]; then
-        logErr "User does not exist: ${username}"
-        return 3
-    fi
-
-    # Ensure the groupname exists
-    if [ "$(id -g ${groupname} >> /dev/null 2>&1; echo $?)" -eq 0 ] ; then
-        logInfo "Found group: ${groupname}"
+function set_cons3rt_created_user() {
+    # Exit if already set
+    if [ -z "${CONS3RT_CREATED_USER}" ]; then
+        logInfo "CONS3RT_CREATED_USER not found, attempting to determine..."
     else
-        if [[ "${groupname}" == "wheel" ]] ; then
-            logInfo "This is wheel group"
-        else
-            logErr "Group does not exist: ${groupname}"
-            return 4
+        return 0
+    fi
+
+    # Ensure the role name variable is set
+    if [ -z "${CONS3RT_ROLE_NAME}" ]; then logErr "CONS3RT_ROLE_NAME is required but not set"; return 1; fi
+    if [ -z "${DEPLOYMENT_HOME}" ]; then set_deployment_home; fi
+    if [ -z "${DEPLOYMENT_HOME}" ]; then logErr "DEPLOYMENT_HOME is required but not set"; return 1; fi
+
+    local deploymentPropertiesFile="${DEPLOYMENT_HOME}/deployment.properties"
+
+    # Get the created user from the role name
+    local cons3rtCreatedUsers=( $(cat ${deploymentPropertiesFile} | grep "cons3rt.fap.deployment.machine.createdUsername.${CONS3RT_ROLE_NAME}" | awk -F = '{print $2}') )
+    local cons3rtCreatedUser="${cons3rtCreatedUsers[0]}"
+
+    # Ensure the cons3rt-created user was found
+    if [ -z "${cons3rtCreatedUser}" ]; then logErr "Unable to determine the CONS3RT-created user from deployment properties"; return 1; fi
+    logInfo "Found the CONS3RT-created user: ${cons3rtCreatedUser}"
+
+    # Set the environment file if not already
+    if [ ! -f /etc/profile.d/cons3rt_created_user.sh ]; then
+        if [[ "$(whoami)" == "root" ]]; then
+            echo "Creating file: /etc/profile.d/cons3rt_created_user.sh"
+            echo "export CONS3RT_CREATED_USER=\"${cons3rtCreatedUser}\"" > /etc/profile.d/cons3rt_created_user.sh
+            chmod 644 /etc/profile.d/cons3rt_created_user.sh
         fi
     fi
-
-    # Add the user to the group
-    logInfo "Adding user [${username}] to group: [${groupname}]..."
-    usermod -a -G ${groupname} ${username} >> ${logFile} 2>&1
-    if [ $? -ne 0 ] ; then
-        logErr "There was a problem adding user [${username}] to group: [${groupname}]"
-        return 5
-    else
-        logInfo "Successfully added user [${username}] to group: [${groupname}]"
-    fi
+    export CONS3RT_CREATED_USER="${cons3rtCreatedUser}"
     return 0
 }
 
