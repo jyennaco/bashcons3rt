@@ -19,6 +19,8 @@ export BASH_CONS3RT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Load functions from bash cons3rt scripts
 . ${BASH_CONS3RT_DIR}/asset.sh
+. ${BASH_CONS3RT_DIR}/distro.sh
+. ${BASH_CONS3RT_DIR}/network.sh
 . ${BASH_CONS3RT_DIR}/systemd.sh
 . ${BASH_CONS3RT_DIR}/users.sh
 
