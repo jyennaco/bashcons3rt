@@ -5,12 +5,19 @@
 # Download and execute this scrip from AWS user-data in order to allow passwords in sshd_config
 #
 # Usage:
-#     curl -O https://path/to/aws_bootstrap.sh
+#     curl -O https://raw.githubusercontent.com/jyennaco/bashcons3rt/master/media/aws_bootstrap.sh
 #     chmod +x aws_bootstrap.sh
-#     nohup ./aws_bootstrap.sh &
+#     First time running use the setup arg:
+#     ./aws_bootstrap.sh setup
 #
+#     Start the service with:
+#     systemctl start aws_bootstrap.service
 #
 
+# 1st arg setup, set to "setup" to tell the script to set itself up as a service
+SETUP="${1}"
+
+# Source the environment
 if [ -f /etc/bashrc ] ; then
     . /etc/bashrc
 fi
@@ -20,21 +27,29 @@ fi
 
 # Times to wait and maximum checks
 seconds_between_checks=5
-maximum_checks=120
+maximum_checks=240
+
+# Path to systemctl service
+bootstrapServiceFile='/usr/lib/systemd/system/aws_bootstrap.service'
+
+# Path to the script to execute
+scriptPath='/usr/local/bin/aws_bootstrap.sh'
+
+# Parent Directory where this script lives
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Timestamp functions for convenience
 function timestamp() { date "+%F %T"; }
-function timestamp_formatted() { date "+%F_%H%M%S"; }
 
 # Log file location
-logFile="/var/log/aws_bootstrap_$(timestamp_formatted).log"
+logFile="/var/log/aws_bootstrap_service.log"
 
 # Logging function
 function logInfo() { echo -e "$(timestamp) ${logTag} [INFO]: ${1}"; echo -e "$(timestamp) ${logTag} [INFO]: ${1}" >> ${logFile}; }
 function logErr() { echo -e "$(timestamp) ${logTag} [ERROR]: ${1}"; echo -e "$(timestamp) ${logTag} [ERROR]: ${1}" >> ${logFile}; }
 
-# Configure sshd
 function config_sshd() {
+    # Configure sshd to allow root login, password authentication, and pubkey authentication
     logInfo "Configuring /etc/ssh/sshd_config to allow public key authentication, password authentication, and root login..."
     sed -i '/PubkeyAuthentication/d' /etc/ssh/sshd_config
     sed -i '/PermitRootLogin/d' /etc/ssh/sshd_config
@@ -50,8 +65,8 @@ function config_sshd() {
     return ${restartRes}
 }
 
-# Wait for user-data to complete
-function wait() {
+function run() {
+    # Run the ssh configuration for user-data to complete
     logInfo "Checking the PasswordAuthentication value in /etc/ssh/sshd_config..."
     check_num=1
     while :; do
@@ -74,20 +89,97 @@ function wait() {
             else
                 logInfo "PasswordAuthentication set to ${passAuthValue}, configuring sshd..."
                 config_sshd
+                if [ $? -ne 0 ]; then logErr "Problem detected configuring sshd"; fi
             fi
         fi
         logInfo "Waiting ${seconds_between_checks} seconds to re-check..."
         sleep ${seconds_between_checks}s
         ((check_num++))
     done
+    return 0
+}
+
+function setup() {
+    # Configures the aws_bootstrap.service in systemd
+    # Return 0 if setup completed with success
+    # Return 1 if a problem was detected
+
+    logInfo "Staging this script to: ${scriptPath}"
+
+    # Ensure this script exists
+    if [ ! -f ${SCRIPT_DIR}/aws_bootstrap.sh ]; then
+        logErr "This script was not found! ${SCRIPT_DIR}/aws_bootstrap.sh"
+        return 1
+    fi
+
+    # Stage the script
+    cp -f ${SCRIPT_DIR}/aws_bootstrap.sh ${scriptPath} >> ${logFile} 2>&1
+    if [ $? -ne 0 ]; then logErr "Problem staging script from ${SCRIPT_DIR}/aws_bootstrap.sh to: ${scriptPath}"; return 1; fi
+
+    # Set permissions
+    logInfo "Setting permissions on: ${scriptPath}"
+    chown root:root ${scriptPath} >> ${logFile} 2>&1
+    chmod 700 ${scriptPath} >> ${logFile} 2>&1
+
+    logInfo "Staging the aws_bootstrap service file: ${bootstrapServiceFile}"
+
+cat << "EOF" > ${bootstrapServiceFile}
+##aws_bootstrap.service
+[Unit]
+Description=Configures sshd
+After=network.target
+DefaultDependencies=no
+[Service]
+Type=simple
+ExecStart=/bin/bash ${scriptPath}
+User=root
+Group=wheel
+TimeoutStartSec=0
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # Daemon reload to pick up the service change
+    logInfo "Running [systemctl daemon-reload] to pick up the new service..."
+    systemctl daemon-reload >> ${logFile} 2>&1
+    if [ $? -ne 0 ]; then logErr "Problem running [systemctl daemon-reload]"; return 1; fi
+
+    # Enable the service
+    logInfo "Enabling the aws_bootstrap.service..."
+    systemctl enable aws_bootstrap.service >> ${logFile} 2>&1
+    if [ $? -ne 0 ]; then logErr "Problem enabling the aws_bootstrap.service"; return 1; fi
+
+    # Start the service
+    logInfo "Starting the aws_bootstrap.service..."
+    systemctl start aws_bootstrap.service >> ${logFile} 2>&1
+    if [ $? -ne 0 ]; then logErr "Problem starting the aws_bootstrap.service"; return 1; fi
+
+    logInfo "Started aws_bootstrap successfully"
+    return 0
 }
 
 function main() {
-    logInfo "Running: aws_bootstrap.sh"
-    wait
+    logInfo "Running: ${SCRIPT_DIR}/aws_bootstrap.sh"
+    if [ -z "${SETUP}" ]; then
+        logInfo "Running the aws bootstrap service..."
+        run
+        logInfo "Completed running the AWS bootstrap service."
+    else
+        if [[ "${SETUP}" == "setup" ]]; then
+            setup
+            if [ $? -ne 0 ]; then logErr "Problem detected with aws_bootstrap service setup"; return 1; fi
+        else
+            logErr "Unknown arg provided: ${SETUP}.  Expected nothing or setup"
+            return 2
+        fi
+    fi
     logInfo "Completed: aws_bootstrap.sh"
+    return 0
 }
 
+# Run the main function
 main
-logInfo "Exiting with code: 0"
-exit 0
+res=$?
+logInfo "Exiting with code: ${res}"
+exit ${res}
