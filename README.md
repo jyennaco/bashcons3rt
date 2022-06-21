@@ -7,6 +7,7 @@ More Info: [https://github.com/jyennaco/bashcons3rt](https://github.com/jyennaco
 ### asset.sh
 
 ```
+get_cloudspace_name
 logErr
 log_err
 logInfo
@@ -18,6 +19,7 @@ read_deployment_properties
 run_and_check_status
 set_asset_dir
 set_deployment_home
+set_deployment_run_home
 timestamp
 timestamp_formatted
 ```
