@@ -1,0 +1,12 @@
+.project
+venv/
+.idea/
+build/
+dist/
+*.pyc
+*.iml
+*egg-info*
+.vagrant
+Vagrantfile
+otto/
+key2
