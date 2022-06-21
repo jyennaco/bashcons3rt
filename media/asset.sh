@@ -20,6 +20,16 @@ function log_info() { echo -e "$(timestamp) ${logTag} [INFO]: ${1}"; echo -e "$(
 function log_warn() { echo -e "$(timestamp) ${logTag} [WARN]: ${1}"; echo -e "$(timestamp) ${logTag} [WARN]: ${1}" >> ${logFile}; }
 function log_err() { echo -e "$(timestamp) ${logTag} [ERROR]: ${1}"; echo -e "$(timestamp) ${logTag} [ERROR]: ${1}" >> ${logFile}; }
 
+function get_cloudspace_name() {
+    # Outputs the cloudspace display name
+    set_deployment_run_home >> /dev/null 2>&1
+    if [ ! -f ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.yml ]; then
+        :
+    else
+        cat ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.yml | grep 'displayName: ' | awk '{print $2}'
+    fi
+}
+
 function move_asset_media_to_dir() {
     # WORK IN PROGRESS
     # This function moves asset media files to the specified directory
@@ -130,5 +140,46 @@ function set_deployment_home() {
         fi
     fi
     export DEPLOYMENT_HOME="${deploymentHome}"
+    return 0
+}
+
+function set_deployment_run_home() {
+    # Ensure DEPLOYMENT_RUN_HOME exists
+    if [ -z "${DEPLOYMENT_RUN_HOME}" ] ; then
+        logInfo "DEPLOYMENT_RUN_HOME is not set, attempting to determine..."
+    else
+        return 0
+    fi
+
+    # Set DEPLOYMENT_HOME if not already
+    set_deployment_home
+
+    local deploymentRunDir="${DEPLOYMENT_HOME}/run"
+    if [ ! -d ${deploymentRunDir} ]; then logErr "Deployment run directory not found: ${deploymentRunDir}"; return 1; fi
+    local deploymentRunDirCount=$(ls ${deploymentRunDir}/ | wc -l)
+
+    # Ensure only 1 deployment directory was found
+    if [ ${deploymentRunDirCount} -ne 1 ] ; then
+        logErr "Could not determine DEPLOYMENT_RUN_HOME"
+        return 1
+    fi
+
+    # Get the deployment run ID
+    local deploymentRunId=$(ls ${deploymentRunDir}/)
+    if [ -z "${deploymentRunId}" ]; then logErr "Problem finding the deployment run ID directory in directory: ${deploymentRunDir}"; return 1; fi
+
+    # Set the deployment run home
+    local deploymentRunHome="${deploymentRunDir}/${deploymentRunId}"
+    if [ ! -d ${deploymentRunHome} ]; then logErr "Deployment run home not found: ${deploymentRunHome}"; return 1; fi
+
+    # Set the environment file if not already
+    if [ ! -f /etc/profile.d/cons3rt_deployment_run_home.sh ]; then
+        if [[ "$(whoami)" == "root" ]]; then
+            echo "Creating file: /etc/profile.d/cons3rt_deployment_run_home.sh"
+            echo "export DEPLOYMENT_RUN_HOME=\"${deploymentRunHome}\"" > /etc/profile.d/cons3rt_deployment_run_home.sh
+            chmod 644 /etc/profile.d/cons3rt_deployment_run_home.sh
+        fi
+    fi
+    export DEPLOYMENT_RUN_HOME="${deploymentRunHome}"
     return 0
 }
