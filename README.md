@@ -9,10 +9,10 @@ More Info: [https://github.com/jyennaco/bashcons3rt](https://github.com/jyennaco
 ```
 get_cloudspace_name
 logErr
-log_err
 logInfo
-log_info
 logWarn
+log_err
+log_info
 log_warn
 move_asset_media_to_dir
 read_deployment_properties
@@ -22,6 +22,12 @@ set_deployment_home
 set_deployment_run_home
 timestamp
 timestamp_formatted
+```
+
+### network.sh
+
+```
+validate_ip_address
 ```
 
 ### systemd.sh
