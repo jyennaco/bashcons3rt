@@ -6,6 +6,19 @@
 #
 #
 
+function get_dns_ip() {
+    local domainName="${1}"
+    if [ -z "${domainName}" ]; then
+        return 1
+    fi
+    which nslookup >> /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    nslookup "${domainName}" | grep 'Address:' | tail -n 1 | awk '{print $NF}'
+    return $?
+}
+
 
 function validate_ip_address() {
     # Test an IP address for validity
