@@ -30,12 +30,22 @@ function logWarn() { echo -e "$(timestamp) ${logTag} [WARN]: ${1}" >> ${logFile}
 function logErr() { echo -e "$(timestamp) ${logTag} [ERROR]: ${1}" >> ${logFile}; }
 
 function add_env() {
+    # Get the globalEnvFile based on what is available
+    if [ -f /etc/bashrc ]; then
+        globalEnvFile='/etc/bashrc'
+    elif [ -f /etc/profile ]; then
+        globalEnvFile='/etc/profile'
+    else
+        logErr "Global env file not found"
+        return 1
+    fi
+
     logInfo "Adding the bash_cons3rt library to the environment for all users"
-    sed -i "/# bash cons3rt library/d" /etc/bashrc
-    sed -i "/bash_cons3rt.sh/d" /etc/bashrc
-    echo -e "\n# bash cons3rt library" >> /etc/bashrc
-    echo ". ${libInstallDir}/bash_cons3rt.sh" >> /etc/bashrc
-    echo -e "\n" >> /etc/bashrc
+    sed -i "/# bash cons3rt library/d" ${globalEnvFile}
+    sed -i "/bash_cons3rt.sh/d" ${globalEnvFile}
+    echo -e "\n# bash cons3rt library" >> ${globalEnvFile}
+    echo ". ${libInstallDir}/bash_cons3rt.sh" >> ${globalEnvFile}
+    echo -e "\n" >> ${globalEnvFile}
     logInfo "Completed adding the bash cons3rt lib to the environment for all users"
     return 0
 }
