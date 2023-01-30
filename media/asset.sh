@@ -115,21 +115,23 @@ function set_deployment_home() {
     # Ensure DEPLOYMENT_HOME exists
     if [ -z "${DEPLOYMENT_HOME}" ] ; then
         logInfo "DEPLOYMENT_HOME is not set, attempting to determine..."
+
+        local deploymentDirCount=$(ls /opt/cons3rt-agent/run | grep Deployment | wc -l)
+
+        # Ensure only 1 deployment directory was found
+        if [ ${deploymentDirCount} -ne 1 ] ; then
+            logErr "Could not determine DEPLOYMENT_HOME"
+            return 1
+        fi
+
+        # Get the full path to deployment home
+        local deploymentDir=$(ls /opt/cons3rt-agent/run | grep "Deployment")
+        local deploymentHome="/opt/cons3rt-agent/run/${deploymentDir}"
+        export DEPLOYMENT_HOME="${deploymentHome}"
     else
-        return 0
+        logInfo "DEPLOYMENT_HOME already set: ${DEPLOYMENT_HOME}"
+        local deploymentHome="${DEPLOYMENT_HOME}"
     fi
-
-    local deploymentDirCount=$(ls /opt/cons3rt-agent/run | grep Deployment | wc -l)
-
-    # Ensure only 1 deployment directory was found
-    if [ ${deploymentDirCount} -ne 1 ] ; then
-        logErr "Could not determine DEPLOYMENT_HOME"
-        return 1
-    fi
-
-    # Get the full path to deployment home
-    local deploymentDir=$(ls /opt/cons3rt-agent/run | grep "Deployment")
-    local deploymentHome="/opt/cons3rt-agent/run/${deploymentDir}"
 
     # Set the environment file if not already
     if [ ! -f /etc/profile.d/cons3rt_deployment_home.sh ]; then
@@ -139,38 +141,38 @@ function set_deployment_home() {
             chmod 644 /etc/profile.d/cons3rt_deployment_home.sh
         fi
     fi
-    export DEPLOYMENT_HOME="${deploymentHome}"
     return 0
 }
 
 function set_deployment_run_home() {
-    # Ensure DEPLOYMENT_RUN_HOME exists
-    if [ -z "${DEPLOYMENT_RUN_HOME}" ] ; then
-        logInfo "DEPLOYMENT_RUN_HOME is not set, attempting to determine..."
-    else
-        return 0
-    fi
-
     # Set DEPLOYMENT_HOME if not already
     set_deployment_home
 
-    local deploymentRunDir="${DEPLOYMENT_HOME}/run"
-    if [ ! -d ${deploymentRunDir} ]; then logErr "Deployment run directory not found: ${deploymentRunDir}"; return 1; fi
-    local deploymentRunDirCount=$(ls ${deploymentRunDir}/ | wc -l)
+    # Ensure DEPLOYMENT_RUN_HOME exists
+    if [ -z "${DEPLOYMENT_RUN_HOME}" ] ; then
+        logInfo "DEPLOYMENT_RUN_HOME is not set, attempting to determine..."
+        local deploymentRunDir="${DEPLOYMENT_HOME}/run"
+        if [ ! -d ${deploymentRunDir} ]; then logErr "Deployment run directory not found: ${deploymentRunDir}"; return 1; fi
+        local deploymentRunDirCount=$(ls ${deploymentRunDir}/ | wc -l)
 
-    # Ensure only 1 deployment directory was found
-    if [ ${deploymentRunDirCount} -ne 1 ] ; then
-        logErr "Could not determine DEPLOYMENT_RUN_HOME"
-        return 1
+        # Ensure only 1 deployment directory was found
+        if [ ${deploymentRunDirCount} -ne 1 ] ; then
+            logErr "Could not determine DEPLOYMENT_RUN_HOME"
+            return 1
+        fi
+
+        # Get the deployment run ID
+        local deploymentRunId=$(ls ${deploymentRunDir}/)
+        if [ -z "${deploymentRunId}" ]; then logErr "Problem finding the deployment run ID directory in directory: ${deploymentRunDir}"; return 1; fi
+
+        # Set the deployment run home
+        local deploymentRunHome="${deploymentRunDir}/${deploymentRunId}"
+        export DEPLOYMENT_RUN_HOME="${deploymentRunHome}"
+        if [ ! -d ${deploymentRunHome} ]; then logErr "Deployment run home not found: ${deploymentRunHome}"; return 1; fi
+    else
+        logInfo "DEPLOYMENT_RUN_HOME already set: ${DEPLOYMENT_RUN_HOME}"
+        local deploymentRunHome="${DEPLOYMENT_RUN_HOME}"
     fi
-
-    # Get the deployment run ID
-    local deploymentRunId=$(ls ${deploymentRunDir}/)
-    if [ -z "${deploymentRunId}" ]; then logErr "Problem finding the deployment run ID directory in directory: ${deploymentRunDir}"; return 1; fi
-
-    # Set the deployment run home
-    local deploymentRunHome="${deploymentRunDir}/${deploymentRunId}"
-    if [ ! -d ${deploymentRunHome} ]; then logErr "Deployment run home not found: ${deploymentRunHome}"; return 1; fi
 
     # Set the environment file if not already
     if [ ! -f /etc/profile.d/cons3rt_deployment_run_home.sh ]; then
@@ -180,6 +182,5 @@ function set_deployment_run_home() {
             chmod 644 /etc/profile.d/cons3rt_deployment_run_home.sh
         fi
     fi
-    export DEPLOYMENT_RUN_HOME="${deploymentRunHome}"
     return 0
 }

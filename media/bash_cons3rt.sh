@@ -27,4 +27,5 @@ export BASH_CONS3RT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Initialize the environment
 set_cons3rt_role_name
 set_deployment_home
+set_deployment_run_home
 set_cons3rt_created_user
