@@ -12,13 +12,21 @@ function timestamp() { date "+%F %T"; }
 function timestamp_formatted() { date "+%F_%H%M%S"; }
 
 # Logging functions
-function logInfo() { echo -e "$(timestamp) ${logTag} [INFO]: ${1}"; echo -e "$(timestamp) ${logTag} [INFO]: ${1}" >> ${logFile}; }
-function logWarn() { echo -e "$(timestamp) ${logTag} [WARN]: ${1}"; echo -e "$(timestamp) ${logTag} [WARN]: ${1}" >> ${logFile}; }
-function logErr() { echo -e "$(timestamp) ${logTag} [ERROR]: ${1}"; echo -e "$(timestamp) ${logTag} [ERROR]: ${1}" >> ${logFile}; }
-
-function log_info() { echo -e "$(timestamp) ${logTag} [INFO]: ${1}"; echo -e "$(timestamp) ${logTag} [INFO]: ${1}" >> ${logFile}; }
-function log_warn() { echo -e "$(timestamp) ${logTag} [WARN]: ${1}"; echo -e "$(timestamp) ${logTag} [WARN]: ${1}" >> ${logFile}; }
-function log_err() { echo -e "$(timestamp) ${logTag} [ERROR]: ${1}"; echo -e "$(timestamp) ${logTag} [ERROR]: ${1}" >> ${logFile}; }
+function logInfo() {
+    echo -e "$(timestamp) ${logTag} [INFO]: ${1}";
+    echo -e "$(timestamp) ${logTag} [INFO]: ${1}" >> ${logFile};
+}
+function logWarn() {
+    echo -e "$(timestamp) ${logTag} [WARN]: ${1}";
+    echo -e "$(timestamp) ${logTag} [WARN]: ${1}" >> ${logFile};
+}
+function logErr() {
+    echo -e "$(timestamp) ${logTag} [ERROR]: ${1}";
+    echo -e "$(timestamp) ${logTag} [ERROR]: ${1}" >> ${logFile};
+}
+function log_info() { logInfo "${@}"; }
+function log_warn() { logWarn "${@}"; }
+function log_err() { logErr "${@}"; }
 
 function get_cloudspace_name() {
     # Outputs the cloudspace display name

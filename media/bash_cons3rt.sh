@@ -9,7 +9,12 @@
 # Export global variables
 export currentDir=$(pwd)
 export currentUser=$(whoami)
-export logDir='/opt/cons3rt-agent/log'
+if [ "${currentUser}" == "root" ]; then
+    export logDir='/opt/cons3rt-agent/log'
+else
+    export logDir="${HOME}/cons3rt-agent/log"
+fi
+mkdir -p ${logDir}
 export logTag='bash_cons3rt'
 export logFile="${logDir}/${logTag}.log"
 export resultSet=()
