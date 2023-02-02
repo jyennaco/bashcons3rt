@@ -114,8 +114,6 @@ function set_cons3rt_role_name() {
 function set_deployment_home() {
     # Ensure DEPLOYMENT_HOME exists
     if [ -z "${DEPLOYMENT_HOME}" ] ; then
-        logInfo "DEPLOYMENT_HOME is not set, attempting to determine..."
-
         local deploymentDirCount=$(ls /opt/cons3rt-agent/run | grep Deployment | wc -l)
 
         # Ensure only 1 deployment directory was found
@@ -129,7 +127,6 @@ function set_deployment_home() {
         local deploymentHome="/opt/cons3rt-agent/run/${deploymentDir}"
         export DEPLOYMENT_HOME="${deploymentHome}"
     else
-        logInfo "DEPLOYMENT_HOME already set: ${DEPLOYMENT_HOME}"
         local deploymentHome="${DEPLOYMENT_HOME}"
     fi
 
@@ -150,7 +147,6 @@ function set_deployment_run_home() {
 
     # Ensure DEPLOYMENT_RUN_HOME exists
     if [ -z "${DEPLOYMENT_RUN_HOME}" ] ; then
-        logInfo "DEPLOYMENT_RUN_HOME is not set, attempting to determine..."
         local deploymentRunDir="${DEPLOYMENT_HOME}/run"
         if [ ! -d ${deploymentRunDir} ]; then logErr "Deployment run directory not found: ${deploymentRunDir}"; return 1; fi
         local deploymentRunDirCount=$(ls ${deploymentRunDir}/ | wc -l)
@@ -170,7 +166,6 @@ function set_deployment_run_home() {
         export DEPLOYMENT_RUN_HOME="${deploymentRunHome}"
         if [ ! -d ${deploymentRunHome} ]; then logErr "Deployment run home not found: ${deploymentRunHome}"; return 1; fi
     else
-        logInfo "DEPLOYMENT_RUN_HOME already set: ${DEPLOYMENT_RUN_HOME}"
         local deploymentRunHome="${DEPLOYMENT_RUN_HOME}"
     fi
 
