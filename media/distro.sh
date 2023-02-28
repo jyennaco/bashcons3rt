@@ -40,7 +40,7 @@ function get_distro() {
     logInfo "Detected Linux major version: ${distroMajorVersion}"
     logInfo "Detected Linux Family: ${distroFamily}"
     export distroId=${distroId}
-    export distroVersion${distroVersion}=
+    export distroVersion=${distroVersion}
     export distroMajorVersion=${distroMajorVersion}
     export distroFamily=${distroFamily}
     return 0
