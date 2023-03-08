@@ -7,6 +7,9 @@
 #
 #
 
+# 0 if not Azure, 1 if Azure
+isAzureCloudspace=0
+
 # Timestamp functions
 function timestamp() { date "+%F %T"; }
 function timestamp_formatted() { date "+%F_%H%M%S"; }
@@ -35,6 +38,21 @@ function get_cloudspace_name() {
         :
     else
         cat ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.yml | grep 'displayName: ' | awk '{print $2}'
+    fi
+}
+
+function is_azure() {
+    # Outputs text if this run is an Azure run, nothing if not
+    set_deployment_run_home >> /dev/null 2>&1
+    if [ ! -f ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.yml ]; then
+        isAzureCloudspace=0
+    else
+        azureCheck=$(cat ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.yml | grep 'type: Azure' | awk '{print $2}')
+        if [ -z "${azureCheck}" ]; then
+            isAzureCloudspace=0
+        else
+            isAzureCloudspace=1
+        fi
     fi
 }
 
