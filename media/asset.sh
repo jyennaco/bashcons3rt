@@ -34,10 +34,10 @@ function log_err() { logErr "${@}"; }
 function get_cloudspace_name() {
     # Outputs the cloudspace display name
     set_deployment_run_home >> /dev/null 2>&1
-    if [ ! -f ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.yml ]; then
+    if [ ! -f ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.json ]; then
         :
     else
-        cat ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.yml | grep 'displayName: ' | awk '{print $2}'
+        cat ${DEPLOYMENT_RUN_HOME}/deploymentRunProperties.json | grep 'displayName' | awk -F : '{print $2}' | awk -F \" '{print $2}'
     fi
 }
 
