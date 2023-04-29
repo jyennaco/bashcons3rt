@@ -100,6 +100,20 @@ function read_deployment_properties() {
     return $?
 }
 
+function read_deployment_run_properties() {
+    if [ -z "${DEPLOYMENT_RUN_HOME}" ]; then set_deployment_run_home; fi
+    if [ -z "${DEPLOYMENT_RUN_HOME}" ]; then logErr "Problem setting DEPLOYMENT_RUN_HOME, unable to read deployment run properties files"; return 1; fi
+    local deploymentRunPropertiesFile="${DEPLOYMENT_RUN_HOME}/deployment-properties.sh"
+    if [ ! -f ${deploymentRunPropertiesFile} ] ; then
+        logErr "Deployment run properties file not found: ${deploymentRunPropertiesFile}"
+        return 1
+    fi
+    logInfo "Reading properties file: ${deploymentRunPropertiesFile}"
+    . ${deploymentRunPropertiesFile}
+    return $?
+}
+
+
 function run_and_check_status() {
     "$@" >> ${logFile} 2>&1
     local status=$?

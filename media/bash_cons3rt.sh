@@ -27,6 +27,7 @@ export BASH_CONS3RT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${BASH_CONS3RT_DIR}/distro.sh
 . ${BASH_CONS3RT_DIR}/network.sh
 . ${BASH_CONS3RT_DIR}/packages.sh
+. ${BASH_CONS3RT_DIR}/python.sh
 . ${BASH_CONS3RT_DIR}/systemd.sh
 . ${BASH_CONS3RT_DIR}/users.sh
 

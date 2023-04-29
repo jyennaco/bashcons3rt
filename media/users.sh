@@ -171,6 +171,33 @@ function create_user() {
     return 0
 }
 
+function delete_user() {
+  user_to_delete="${1}"
+  if [ -z "${user_to_delete}" ]; then logErr "Username not provided"; return 1; fi
+
+  # Attempt to delete the user
+  if [ $(id -u ${user_to_delete} >> /dev/null 2>&1; echo $?) -eq 0 ]; then
+      logInfo "Attempting to delete user: ${user_to_delete}"
+      userdel ${user_to_delete} >> ${logFile} 2>&1
+      if [ $? -ne 0 ]; then logErr "Unable to delete user: ${user_to_delete}"; return 2; fi
+  else
+      logInfo "User does not exist: ${user_to_delete}"
+  fi
+
+  # Attempt to delete the user home dir
+  user_home_dir_to_delete="/home/${user_to_delete}"
+  if [ -d ${user_home_dir_to_delete} ]; then
+      logInfo "Deleting user home directory: ${user_home_dir_to_delete}"
+      rm -Rf ${user_home_dir_to_delete} >> ${logFile} 2>&1
+      if [ $? -ne 0 ]; then logErr "Unable to delete user home directory: ${user_home_dir_to_delete}"; return 3; fi
+  else
+      logInfo "User home directory does not exist: ${user_home_dir_to_delete}"
+  fi
+
+  logInfo "Completed deletion for user: ${user_to_delete}"
+  return 0
+}
+
 function set_cons3rt_created_user() {
     # Exit if already set
     if [ -z "${CONS3RT_CREATED_USER}" ]; then
@@ -181,10 +208,10 @@ function set_cons3rt_created_user() {
 
     # Ensure the role name variable is set
     if [ -z "${CONS3RT_ROLE_NAME}" ]; then logErr "CONS3RT_ROLE_NAME is required but not set"; return 1; fi
-    if [ -z "${DEPLOYMENT_HOME}" ]; then set_deployment_home; fi
-    if [ -z "${DEPLOYMENT_HOME}" ]; then logErr "DEPLOYMENT_HOME is required but not set"; return 1; fi
+    if [ -z "${DEPLOYMENT_RUN_HOME}" ]; then set_deployment_run_home; fi
+    if [ -z "${DEPLOYMENT_RUN_HOME}" ]; then logErr "DEPLOYMENT_RUN_HOME is required but not set"; return 1; fi
 
-    local deploymentPropertiesFile="${DEPLOYMENT_HOME}/deployment.properties"
+    local deploymentPropertiesFile="${DEPLOYMENT_RUN_HOME}/deployment.properties"
 
     # Get the created user from the role name
     local cons3rtCreatedUsers=( $(cat ${deploymentPropertiesFile} | grep "cons3rt.fap.deployment.machine.createdUsername.${CONS3RT_ROLE_NAME}" | awk -F = '{print $2}') )
