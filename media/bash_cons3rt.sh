@@ -7,17 +7,14 @@
 #
 
 # Export global variables
-export currentDir=$(pwd)
-export currentUser=$(whoami)
-if [ "${currentUser}" == "root" ]; then
-    export logDir='/opt/cons3rt-agent/log'
+if [ "$(whoami)" == "root" ]; then
+    export CONS3RT_LOG_DIR='/opt/cons3rt-agent/log'
 else
-    export logDir="${HOME}/cons3rt-agent/log"
+    export CONS3RT_LOG_DIR="${HOME}/cons3rt-agent/log"
 fi
-mkdir -p ${logDir}
-export logTag='bash_cons3rt'
-export logFile="${logDir}/${logTag}.log"
-export resultSet=()
+export CONS3RT_LOG_TAG='bash_cons3rt'
+export CONS3RT_LOG_FILE="${CONS3RT_LOG_DIR}/${CONS3RT_LOG_TAG}.log"
+export CONS3RT_ASSET_RESULTS=()
 
 # Determine the location of the bash cons3rt library
 export BASH_CONS3RT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -29,6 +26,7 @@ export BASH_CONS3RT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . ${BASH_CONS3RT_DIR}/packages.sh
 . ${BASH_CONS3RT_DIR}/python.sh
 . ${BASH_CONS3RT_DIR}/systemd.sh
+. ${BASH_CONS3RT_DIR}/uninstall.sh
 . ${BASH_CONS3RT_DIR}/users.sh
 
 # Initialize the environment

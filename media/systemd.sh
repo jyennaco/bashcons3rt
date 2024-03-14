@@ -13,7 +13,7 @@ function disable_service() {
     case ${enabledStatus} in
         enabled)
             logInfo "Disabling service: $1"
-            systemctl disable $1.service >> ${logFile} 2>&1
+            systemctl disable $1.service >> ${CONS3RT_LOG_FILE} 2>&1
             svcRes=$?
             sleep 2
             return ${svcRes}
@@ -35,7 +35,7 @@ function enable_service() {
             ;;
         *)
             logInfo "Enabling service: $1"
-            systemctl enable $1.service >> ${logFile} 2>&1
+            systemctl enable $1.service >> ${CONS3RT_LOG_FILE} 2>&1
             svcRes=$?
             sleep 2
             return ${svcRes}
@@ -47,19 +47,19 @@ function enable_service() {
 function remove_service() {
     if [ -f /etc/systemd/system/${1}.service ]; then
         logInfo "Removing: /etc/systemd/system/${1}.service"
-        rm -f /etc/systemd/system/${1}.service >> ${logFile} 2>&1
+        rm -f /etc/systemd/system/${1}.service >> ${CONS3RT_LOG_FILE} 2>&1
         if [ $? -ne 0 ]; then logErr "Problem removing: rm -f /etc/systemd/system/${1}.service"; return 1; fi
     fi
     if [ -f /usr/lib/systemd/system/${1}.service ]; then
         logInfo "Removing: /usr/lib/systemd/system/${1}.service"
-        rm -f /usr/lib/systemd/system/${1}.service >> ${logFile} 2>&1
+        rm -f /usr/lib/systemd/system/${1}.service >> ${CONS3RT_LOG_FILE} 2>&1
         if [ $? -ne 0 ]; then logErr "Problem removing: rm -f /usr/lib/systemd/system/${1}.service"; return 2; fi
     fi
     logInfo "Running: systemctl daemon-reload"
-    systemctl daemon-reload >> ${logFile} 2>&1
+    systemctl daemon-reload >> ${CONS3RT_LOG_FILE} 2>&1
     if [ $? -ne 0 ]; then logErr "Problem running: systemctl daemon-reload"; return 3; fi
     logInfo "Running: systemctl reset-failed"
-    systemctl reset-failed >> ${logFile} 2>&1
+    systemctl reset-failed >> ${CONS3RT_LOG_FILE} 2>&1
     if [ $? -ne 0 ]; then logErr "Problem running: systemctl reset-failed"; return 4; fi
     logInfo "Completed uninstalling: ${1}"
     return 0
@@ -82,7 +82,7 @@ function start_service() {
             ;;
         *)
             logInfo "Starting service: $1"
-            systemctl start $1.service >> ${logFile} 2>&1
+            systemctl start $1.service >> ${CONS3RT_LOG_FILE} 2>&1
             svcRes=$?
             sleep 5
             return ${svcRes}
@@ -98,7 +98,7 @@ function stop_service() {
     case ${activeStatus} in
         active)
             logInfo "Stopping service: $1"
-            systemctl stop $1.service >> ${logFile} 2>&1
+            systemctl stop $1.service >> ${CONS3RT_LOG_FILE} 2>&1
             svcRes=$?
             sleep 5
             return ${svcRes}

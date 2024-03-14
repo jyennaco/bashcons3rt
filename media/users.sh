@@ -45,7 +45,7 @@ function add_user_to_group() {
 
     # Add the user to the group
     logInfo "Adding user [${username}] to group: [${groupname}]..."
-    usermod -a -G ${groupname} ${username} >> ${logFile} 2>&1
+    usermod -a -G ${groupname} ${username} >> ${CONS3RT_LOG_FILE} 2>&1
     if [ $? -ne 0 ] ; then
         logErr "There was a problem adding user [${username}] to group: [${groupname}]"
         return 5
@@ -72,7 +72,7 @@ function create_group() {
         logInfo "${groupname} group already exists"
     else
         logInfo "${groupname} group does not exist, creating ..."
-        groupadd ${groupname} >> ${logFile} 2>&1
+        groupadd ${groupname} >> ${CONS3RT_LOG_FILE} 2>&1
         if [ $? -ne 0 ] ; then
             logErr "There was a problem creating group: ${groupname}"
             return 1
@@ -101,13 +101,13 @@ function create_group() {
             logInfo "Found existing group: ${existingGroup} with GID: ${group_id}"
             let new_gid=$group_id+50
             logInfo "Attempting to assign new UID ${new_gid} to user: ${existingGroup}"
-            groupmod -g ${new_gid} ${existingGroup} >> ${logFile} 2>&1
+            groupmod -g ${new_gid} ${existingGroup} >> ${CONS3RT_LOG_FILE} 2>&1
             if [ $? -ne 0 ]; then logErr "There was a problem changing the GID of ${existingGroup} to: ${new_gid}"; return 3; fi
         fi
     fi
 
     logInfo "Attempting to set the group ID for [${groupname}] to: ${group_id}"
-    groupmod -g ${group_id} ${groupname} >> ${logFile} 2>&1
+    groupmod -g ${group_id} ${groupname} >> ${CONS3RT_LOG_FILE} 2>&1
     if [ $? -ne 0 ]; then logErr "There was a problem setting the group ID for [${groupname}] to: ${group_id}"; return 2; fi
     logInfo "Successfully set the group ID for [${groupname}] to: ${group_id}"
     return 0
@@ -130,7 +130,7 @@ function create_user() {
     # Create the user
     if [ $(id -u ${username} >> /dev/null 2>&1; echo $?) -ne 0 ]; then
         logInfo "${username} user does not exist yet, creating..."
-        useradd -d "${homedir}" -s "${loginshell}" -c "${username}" -g ${username} ${username} >> ${logFile} 2>&1
+        useradd -d "${homedir}" -s "${loginshell}" -c "${username}" -g ${username} ${username} >> ${CONS3RT_LOG_FILE} 2>&1
         if [ $? -ne 0 ] ; then
             logErr "There was a problem creating user: ${username}"
             return 2
@@ -158,13 +158,13 @@ function create_user() {
                 logInfo "Found existing username: ${existingUsername} with UID: ${desired_uid}"
                 let new_uid=$desired_uid+50
                 logInfo "Attempting to assign new UID ${new_uid} to user: ${existingUsername}"
-                usermod -u ${new_uid} ${existingUsername} >> ${logFile} 2>&1
+                usermod -u ${new_uid} ${existingUsername} >> ${CONS3RT_LOG_FILE} 2>&1
                 if [ $? -ne 0 ]; then logErr "There was a problem changing the UID of ${existingUsername} to: ${new_uid}"; return 3; fi
             fi
         fi
 
         logInfo "Setting UID for user [${username}] to: ${desired_uid}"
-        usermod -u ${desired_uid} ${username} >> ${logFile} 2>&1
+        usermod -u ${desired_uid} ${username} >> ${CONS3RT_LOG_FILE} 2>&1
         if [ $? -ne 0 ]; then logErr "There was a problem setting UID for username [${username}] to: ${desired_uid}"; return 4; fi
     fi
     logInfo "Completed user creation for: ${username}"
@@ -178,7 +178,7 @@ function delete_user() {
   # Attempt to delete the user
   if [ $(id -u ${user_to_delete} >> /dev/null 2>&1; echo $?) -eq 0 ]; then
       logInfo "Attempting to delete user: ${user_to_delete}"
-      userdel ${user_to_delete} >> ${logFile} 2>&1
+      userdel ${user_to_delete} >> ${CONS3RT_LOG_FILE} 2>&1
       if [ $? -ne 0 ]; then logErr "Unable to delete user: ${user_to_delete}"; return 2; fi
   else
       logInfo "User does not exist: ${user_to_delete}"
@@ -188,7 +188,7 @@ function delete_user() {
   user_home_dir_to_delete="/home/${user_to_delete}"
   if [ -d ${user_home_dir_to_delete} ]; then
       logInfo "Deleting user home directory: ${user_home_dir_to_delete}"
-      rm -Rf ${user_home_dir_to_delete} >> ${logFile} 2>&1
+      rm -Rf ${user_home_dir_to_delete} >> ${CONS3RT_LOG_FILE} 2>&1
       if [ $? -ne 0 ]; then logErr "Unable to delete user home directory: ${user_home_dir_to_delete}"; return 3; fi
   else
       logInfo "User home directory does not exist: ${user_home_dir_to_delete}"
@@ -263,7 +263,7 @@ function set_user_password() {
 
     # Set the password to never expire
     logInfo "Setting the password to never expire for user: ${username}"
-    chage -I -1 -m 0 -M 99999 -E -1 ${username} >> ${logFile} 2>&1
+    chage -I -1 -m 0 -M 99999 -E -1 ${username} >> ${CONS3RT_LOG_FILE} 2>&1
     if [ $? -ne 0 ] ; then logErr "There was a problem configuring user to not expire: ${username}"; return 3; fi
     logInfo "Successfully set ${username} to never expire"
     return 0

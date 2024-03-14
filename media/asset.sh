@@ -16,16 +16,19 @@ function timestamp_formatted() { date "+%F_%H%M%S"; }
 
 # Logging functions
 function logInfo() {
-    echo -e "$(timestamp) ${logTag} [INFO]: ${1}";
-    echo -e "$(timestamp) ${logTag} [INFO]: ${1}" >> ${logFile};
+    if [ ! -d ${CONS3RT_LOG_DIR} ]; then mkdir -p ${CONS3RT_LOG_DIR}; fi
+    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [INFO]: ${1}";
+    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [INFO]: ${1}" >> ${CONS3RT_LOG_FILE};
 }
 function logWarn() {
-    echo -e "$(timestamp) ${logTag} [WARN]: ${1}";
-    echo -e "$(timestamp) ${logTag} [WARN]: ${1}" >> ${logFile};
+    if [ ! -d ${CONS3RT_LOG_DIR} ]; then mkdir -p ${CONS3RT_LOG_DIR}; fi
+    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [WARN]: ${1}";
+    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [WARN]: ${1}" >> ${CONS3RT_LOG_FILE};
 }
 function logErr() {
-    echo -e "$(timestamp) ${logTag} [ERROR]: ${1}";
-    echo -e "$(timestamp) ${logTag} [ERROR]: ${1}" >> ${logFile};
+    if [ ! -d ${CONS3RT_LOG_DIR} ]; then mkdir -p ${CONS3RT_LOG_DIR}; fi
+    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [ERROR]: ${1}";
+    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [ERROR]: ${1}" >> ${CONS3RT_LOG_FILE};
 }
 function log_info() { logInfo "${@}"; }
 function log_warn() { logWarn "${@}"; }
@@ -76,12 +79,12 @@ function move_asset_media_to_dir() {
     # Create the destination directory if it does not exist
     if [ ! -d ${destinationDir} ]; then
         logInfo "Creating directory: ${destinationDir}"
-        mkdir -p ${destinationDir} >> ${logFile} 2>&1
+        mkdir -p ${destinationDir} >> ${CONS3RT_LOG_FILE} 2>&1
         if [ $? -ne 0 ]; then logErr "Problem creating destination directory: ${destinationDir}"; return 1; fi
     fi
 
     logInfo "Moving media from [${mediaDir}] to [${destinationDir}]..."
-    mv -f ${mediaDir}/* ${destinationDir}/ >> ${logFile} 2>&1
+    mv -f ${mediaDir}/* ${destinationDir}/ >> ${CONS3RT_LOG_FILE} 2>&1
     if [ $? -ne 0 ]; then logErr "Problem moving media from [${mediaDir}] to [${destinationDir}]"; return 1; fi
     logInfo "Completed moving asset media files"
     return 0
@@ -115,14 +118,14 @@ function read_deployment_run_properties() {
 
 
 function run_and_check_status() {
-    "$@" >> ${logFile} 2>&1
+    "$@" >> ${CONS3RT_LOG_FILE} 2>&1
     local status=$?
     if [ ${status} -ne 0 ] ; then
         logErr "Error executing: $@, exited with code: ${status}"
     else
         logInfo "$@ executed successfully and exited with code: ${status}"
     fi
-    resultSet+=("${status}")
+    CONS3RT_ASSET_RESULTS+=("${status}")
     return ${status}
 }
 
