@@ -16,6 +16,11 @@ export CONS3RT_LOG_TAG='bash_cons3rt'
 export CONS3RT_LOG_FILE="${CONS3RT_LOG_DIR}/${CONS3RT_LOG_TAG}.log"
 export CONS3RT_ASSET_RESULTS=()
 
+# For backwards compatibility
+export logTag="${CONS3RT_LOG_TAG}"
+export logDir="${CONS3RT_LOG_DIR}"
+export logFile="${CONS3RT_LOG_FILE}"
+
 # Determine the location of the bash cons3rt library
 export BASH_CONS3RT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
