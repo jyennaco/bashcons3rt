@@ -116,7 +116,7 @@ function main() {
 
 # Set up the log file
 mkdir -p ${logDir}
-chmod 700 ${logDir}
+chmod 755 ${logDir}
 touch ${logFile}
 chmod 644 ${logFile}
 main
