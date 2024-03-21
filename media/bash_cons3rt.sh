@@ -12,7 +12,7 @@ if [ "$(whoami)" == "root" ]; then
 else
     export CONS3RT_LOG_DIR="${HOME}/cons3rt-agent/log"
 fi
-export CONS3RT_LOG_TAG='bash_cons3rt'
+export CONS3RT_LOG_TAG='assets'
 export CONS3RT_LOG_FILE="${CONS3RT_LOG_DIR}/${CONS3RT_LOG_TAG}.log"
 export CONS3RT_ASSET_RESULTS=()
 

@@ -16,19 +16,25 @@ function timestamp_formatted() { date "+%F_%H%M%S"; }
 
 # Logging functions
 function logInfo() {
-    if [ ! -d ${CONS3RT_LOG_DIR} ]; then mkdir -p ${CONS3RT_LOG_DIR}; fi
-    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [INFO]: ${1}";
-    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [INFO]: ${1}" >> ${CONS3RT_LOG_FILE};
+    if [ ! -d ${logDir} ]; then mkdir -p ${logDir}; fi
+    local infoMsg="$(timestamp) ${logTag} [INFO] [${FUNCNAME[1]}]: ${1}"
+    logger -i -p local3.info -t "${logTag}" -- "[INFO] [${FUNCNAME[1]}]: ${1}"
+    echo -e "${infoMsg}"
+    echo -e "${infoMsg}" >> ${logFile}
 }
 function logWarn() {
-    if [ ! -d ${CONS3RT_LOG_DIR} ]; then mkdir -p ${CONS3RT_LOG_DIR}; fi
-    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [WARN]: ${1}";
-    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [WARN]: ${1}" >> ${CONS3RT_LOG_FILE};
+    if [ ! -d ${logDir} ]; then mkdir -p ${logDir}; fi
+    local warnMsg="$(timestamp) ${logTag} [WARN] [${FUNCNAME[1]}]: ${1}"
+    logger -i -p local3.warning -t "${logTag}" -- "[WARN] [${FUNCNAME[1]}]: ${1}"
+    echo -e "${warnMsg}"
+    echo -e "${warnMsg}" >> ${logFile}
 }
 function logErr() {
-    if [ ! -d ${CONS3RT_LOG_DIR} ]; then mkdir -p ${CONS3RT_LOG_DIR}; fi
-    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [ERROR]: ${1}";
-    echo -e "$(timestamp) ${CONS3RT_LOG_TAG} [ERROR]: ${1}" >> ${CONS3RT_LOG_FILE};
+    if [ ! -d ${logDir} ]; then mkdir -p ${logDir}; fi
+    local errMsg="$(timestamp) ${logTag} [ERROR] [${FUNCNAME[1]}]: ${1}"
+    logger -i -p local3.err -t "${logTag}" -- "[ERROR] [${FUNCNAME[1]}]: ${1}"
+    echo -e "${errMsg}"
+    echo -e "${errMsg}" >> ${logFile}
 }
 function log_info() { logInfo "${@}"; }
 function log_warn() { logWarn "${@}"; }
