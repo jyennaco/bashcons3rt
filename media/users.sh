@@ -23,16 +23,16 @@ function add_user_to_group() {
         logErr "Group name not provided to add_user_to_group"
         return 2
     fi
-    logInfo "Attemping to add user [${username}] to group [${groupname}]"
+    logInfo "Attempting to add user [${username}] to group [${groupname}]..."
 
     # Ensure the username exists
-    if [ $(id -u ${username} >> /dev/null 2>&1; echo $?) -ne 0 ]; then
+    if [ $(getent passwd ${username} >> /dev/null 2>&1; echo $?) -ne 0 ]; then
         logErr "User does not exist: ${username}"
         return 3
     fi
 
     # Ensure the groupname exists
-    if [ "$(id -g ${groupname} >> /dev/null 2>&1; echo $?)" -eq 0 ] ; then
+    if [ "$(getent group ${groupname} >> /dev/null 2>&1; echo $?)" -eq 0 ] ; then
         logInfo "Found group: ${groupname}"
     else
         if [[ "${groupname}" == "wheel" ]] ; then
@@ -68,7 +68,7 @@ function create_group() {
     fi
 
     # Create the group if it does not exist
-    if [ "$(id -g ${groupname} >> /dev/null 2>&1; echo $?)" -eq 0 ] ; then
+    if [ "$(getent group ${groupname} >> /dev/null 2>&1; echo $?)" -eq 0 ] ; then
         logInfo "${groupname} group already exists"
     else
         logInfo "${groupname} group does not exist, creating ..."
@@ -128,7 +128,7 @@ function create_user() {
     loginshell="/bin/bash"
 
     # Create the user
-    if [ $(id -u ${username} >> /dev/null 2>&1; echo $?) -ne 0 ]; then
+    if [ $(getent passwd ${username} >> /dev/null 2>&1; echo $?) -ne 0 ]; then
         logInfo "${username} user does not exist yet, creating..."
         useradd -d "${homedir}" -s "${loginshell}" -c "${username}" -g ${username} ${username} >> ${CONS3RT_LOG_FILE} 2>&1
         if [ $? -ne 0 ] ; then
@@ -176,7 +176,7 @@ function delete_user() {
   if [ -z "${user_to_delete}" ]; then logErr "Username not provided"; return 1; fi
 
   # Attempt to delete the user
-  if [ $(id -u ${user_to_delete} >> /dev/null 2>&1; echo $?) -eq 0 ]; then
+  if [ $(getent passwd ${user_to_delete} >> /dev/null 2>&1; echo $?) -eq 0 ]; then
       logInfo "Attempting to delete user: ${user_to_delete}"
       userdel ${user_to_delete} >> ${CONS3RT_LOG_FILE} 2>&1
       if [ $? -ne 0 ]; then logErr "Unable to delete user: ${user_to_delete}"; return 2; fi
