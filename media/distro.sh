@@ -29,6 +29,10 @@ function get_distro() {
         distroId="redhat"
         distroVersion=$(cat /etc/redhat-release | awk '{print $7}' | awk -F . '{print $1}')
         distroFamily="rhel fedora"
+    elif [ -f /etc/rocky-release ] ; then
+        distroId="rocky"
+        distroVersion=$(cat /etc/rocky-release | awk '{print $7}' | awk -F . '{print $1}')
+        distroFamily="rhel fedora"
     else logErr "Unable to determine the Linux distro or version"; return 4; fi;
     if [[ ${distroId} == "rhel" ]] ; then
         logInfo "Found distroId: rhel, setting to redhat..."
